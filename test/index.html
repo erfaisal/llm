@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OpenRouter / Groq API Tester</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #0f172a;
+      color: white;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 850px;
+      margin: auto;
+      background: #111827;
+      padding: 24px;
+      border-radius: 14px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+
+    h1 {
+      margin-top: 0;
+      text-align: center;
+      color: #38bdf8;
+    }
+
+    label {
+      display: block;
+      margin-top: 16px;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    select,
+    input,
+    textarea,
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      font-size: 15px;
+    }
+
+    input,
+    textarea,
+    select {
+      background: #1f2937;
+      color: white;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 18px;
+      background: #0ea5e9;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #0284c7;
+    }
+
+    .response {
+      margin-top: 24px;
+      background: #0b1220;
+      padding: 16px;
+      border-radius: 10px;
+      white-space: pre-wrap;
+      border: 1px solid #1e293b;
+      min-height: 100px;
+    }
+
+    .success {
+      color: #22c55e;
+    }
+
+    .error {
+      color: #ef4444;
+    }
+
+    .small {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-top: 6px;
+    }
+
+    .loading {
+      color: #facc15;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>OpenRouter / Groq API Tester</h1>
+
+    <label>Provider</label>
+    <select id="provider">
+      <option value="openrouter">OpenRouter</option>
+      <option value="groq">Groq</option>
+    </select>
+
+    <label>API Key</label>
+    <input type="password" id="apiKey" placeholder="Enter API Key">
+
+    <label>Model</label>
+    <input type="text" id="model" value="llama3-70b-8192">
+
+    <div class="small">
+      Examples:<br>
+      OpenRouter → openai/gpt-4o-mini<br>
+      Groq → llama3-70b-8192
+    </div>
+
+    <label>Prompt</label>
+    <textarea id="prompt">Hello! Reply with a short message to confirm API is working.</textarea>
+
+    <button onclick="testAPI()">Test API</button>
+
+    <div class="response" id="response">
+      Waiting for request...
+    </div>
+  </div>
+
+  <script>
+    async function testAPI() {
+      const provider = document.getElementById("provider").value;
+      const apiKey = document.getElementById("apiKey").value.trim();
+      const model = document.getElementById("model").value.trim();
+      const prompt = document.getElementById("prompt").value.trim();
+      const responseBox = document.getElementById("response");
+
+      if (!apiKey) {
+        responseBox.innerHTML = '<span class="error">Please enter API key.</span>';
+        return;
+      }
+
+      let url = "";
+      let headers = {
+        "Content-Type": "application/json"
+      };
+
+      if (provider === "openrouter") {
+        url = "https://openrouter.ai/api/v1/chat/completions";
+        headers["Authorization"] = `Bearer ${apiKey}`;
+        headers["HTTP-Referer"] = window.location.href;
+        headers["X-Title"] = "API Tester";
+      } else {
+        url = "https://api.groq.com/openai/v1/chat/completions";
+        headers["Authorization"] = `Bearer ${apiKey}`;
+      }
+
+      const body = {
+        model: model,
+        messages: [
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.7
+      };
+
+      responseBox.innerHTML = '<span class="loading">Sending request...</span>';
+
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          responseBox.innerHTML =
+            `<span class="error">Error ${res.status}</span>\n\n` +
+            JSON.stringify(data, null, 2);
+          return;
+        }
+
+        const reply =
+          data.choices?.[0]?.message?.content ||
+          "No response content found.";
+
+        responseBox.innerHTML =
+          `<span class="success">API Working ✅</span>\n\n${reply}`;
+
+      } catch (err) {
+        responseBox.innerHTML =
+          `<span class="error">Request Failed</span>\n\n${err.message}`;
+      }
+    }
+  </script>
+
+</body>
+</html>
