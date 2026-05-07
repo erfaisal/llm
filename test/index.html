@@ -1,214 +1,372 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>OpenRouter / Groq API Tester</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI API Tester (Free Tiers)</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #334155;
+            --error: #ef4444;
+            --success: #10b981;
+        }
 
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
 
-    body {
-      background: #0f172a;
-      color: white;
-      margin: 0;
-      padding: 20px;
-    }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
 
-    .container {
-      max-width: 850px;
-      margin: auto;
-      background: #111827;
-      padding: 24px;
-      border-radius: 14px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.4);
-    }
+        .container {
+            background-color: var(--card-bg);
+            max-width: 600px;
+            width: 100%;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--border);
+        }
 
-    h1 {
-      margin-top: 0;
-      text-align: center;
-      color: #38bdf8;
-    }
+        h2 {
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--text-main);
+        }
 
-    label {
-      display: block;
-      margin-top: 16px;
-      margin-bottom: 6px;
-      font-weight: bold;
-    }
+        .form-group {
+            margin-bottom: 16px;
+        }
 
-    select,
-    input,
-    textarea,
-    button {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      border: none;
-      outline: none;
-      font-size: 15px;
-    }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
 
-    input,
-    textarea,
-    select {
-      background: #1f2937;
-      color: white;
-    }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
 
-    textarea {
-      min-height: 120px;
-      resize: vertical;
-    }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent);
+        }
 
-    button {
-      margin-top: 18px;
-      background: #0ea5e9;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.2s;
-    }
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: none;
+            background-color: var(--accent);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 8px;
+        }
 
-    button:hover {
-      background: #0284c7;
-    }
+        button:hover:not(:disabled) {
+            background-color: var(--accent-hover);
+        }
 
-    .response {
-      margin-top: 24px;
-      background: #0b1220;
-      padding: 16px;
-      border-radius: 10px;
-      white-space: pre-wrap;
-      border: 1px solid #1e293b;
-      min-height: 100px;
-    }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
 
-    .success {
-      color: #22c55e;
-    }
+        .flex-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
 
-    .error {
-      color: #ef4444;
-    }
+        .flex-row > div {
+            flex: 1;
+        }
 
-    .small {
-      font-size: 13px;
-      color: #94a3b8;
-      margin-top: 6px;
-    }
+        .flex-row button {
+            flex: 0 0 auto;
+            width: auto;
+            margin-top: 0;
+            padding: 10px 16px;
+        }
 
-    .loading {
-      color: #facc15;
-    }
-  </style>
+        #output {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 6px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border);
+            min-height: 100px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            display: none;
+        }
+
+        .error-text { color: var(--error); }
+        .success-text { color: var(--success); }
+        
+        /* Mobile specific adjustments */
+        @media (max-width: 480px) {
+            .flex-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .flex-row button {
+                width: 100%;
+                margin-top: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-  <div class="container">
-    <h1>OpenRouter / Groq API Tester</h1>
+<div class="container">
+    <h2>API Tester (Free Tiers)</h2>
 
-    <label>Provider</label>
-    <select id="provider">
-      <option value="openrouter">OpenRouter</option>
-      <option value="groq">Groq</option>
-    </select>
-
-    <label>API Key</label>
-    <input type="password" id="apiKey" placeholder="Enter API Key">
-
-    <label>Model</label>
-    <input type="text" id="model" value="llama3-70b-8192">
-
-    <div class="small">
-      Examples:<br>
-      OpenRouter → openai/gpt-4o-mini<br>
-      Groq → llama3-70b-8192
+    <div class="form-group">
+        <label for="provider">Select Provider</label>
+        <select id="provider" onchange="handleProviderChange()">
+            <option value="groq">Groq</option>
+            <option value="openrouter">OpenRouter</option>
+            <option value="google">Google Gemini</option>
+        </select>
     </div>
 
-    <label>Prompt</label>
-    <textarea id="prompt">Hello! Reply with a short message to confirm API is working.</textarea>
-
-    <button onclick="testAPI()">Test API</button>
-
-    <div class="response" id="response">
-      Waiting for request...
+    <div class="form-group flex-row">
+        <div>
+            <label for="apiKey">API Key</label>
+            <input type="password" id="apiKey" placeholder="Enter API Key">
+        </div>
+        <button id="fetchBtn" onclick="fetchModels()">Fetch Models</button>
     </div>
-  </div>
 
-  <script>
-    async function testAPI() {
-      const provider = document.getElementById("provider").value;
-      const apiKey = document.getElementById("apiKey").value.trim();
-      const model = document.getElementById("model").value.trim();
-      const prompt = document.getElementById("prompt").value.trim();
-      const responseBox = document.getElementById("response");
+    <div class="form-group">
+        <label for="modelSelect">Available Models</label>
+        <select id="modelSelect">
+            <option value="">-- Fetch models first --</option>
+        </select>
+    </div>
 
-      if (!apiKey) {
-        responseBox.innerHTML = '<span class="error">Please enter API key.</span>';
-        return;
-      }
+    <div class="form-group">
+        <label for="prompt">Test Prompt</label>
+        <textarea id="prompt" rows="3">Hello! Please reply with a short greeting and confirm you are working.</textarea>
+    </div>
 
-      let url = "";
-      let headers = {
-        "Content-Type": "application/json"
-      };
+    <button id="testBtn" onclick="testAPI()">Test API</button>
 
-      if (provider === "openrouter") {
-        url = "https://openrouter.ai/api/v1/chat/completions";
-        headers["Authorization"] = `Bearer ${apiKey}`;
-        headers["HTTP-Referer"] = window.location.href;
-        headers["X-Title"] = "API Tester";
-      } else {
-        url = "https://api.groq.com/openai/v1/chat/completions";
-        headers["Authorization"] = `Bearer ${apiKey}`;
-      }
+    <div id="output"></div>
+</div>
 
-      const body = {
-        model: model,
-        messages: [
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        temperature: 0.7
-      };
+<script>
+    // Configs for the 3 providers
+    const config = {
+        groq: {
+            modelsUrl: 'https://api.groq.com/openai/v1/models',
+            chatUrl: 'https://api.groq.com/openai/v1/chat/completions',
+            authType: 'Bearer'
+        },
+        openrouter: {
+            modelsUrl: 'https://openrouter.ai/api/v1/models',
+            chatUrl: 'https://openrouter.ai/api/v1/chat/completions',
+            authType: 'Bearer'
+        },
+        google: {
+            modelsUrl: 'https://generativelanguage.googleapis.com/v1beta/models',
+            // Note: chat url for google requires appending the model name directly in the path
+            chatUrlBase: 'https://generativelanguage.googleapis.com/v1beta/',
+            authType: 'Query' // ?key=...
+        }
+    };
 
-      responseBox.innerHTML = '<span class="loading">Sending request...</span>';
+    // Initialize: load saved key if exists
+    document.addEventListener('DOMContentLoaded', () => {
+        handleProviderChange();
+    });
 
-      try {
-        const res = await fetch(url, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(body)
-        });
+    function handleProviderChange() {
+        const provider = document.getElementById('provider').value;
+        const savedKey = localStorage.getItem(`${provider}_key`);
+        document.getElementById('apiKey').value = savedKey || '';
+        document.getElementById('modelSelect').innerHTML = '<option value="">-- Fetch models first --</option>';
+        hideOutput();
+    }
 
-        const data = await res.json();
+    function showOutput(text, isError = false) {
+        const outputEl = document.getElementById('output');
+        outputEl.style.display = 'block';
+        outputEl.className = isError ? 'error-text' : '';
+        outputEl.innerText = text;
+    }
 
-        if (!res.ok) {
-          responseBox.innerHTML =
-            `<span class="error">Error ${res.status}</span>\n\n` +
-            JSON.stringify(data, null, 2);
-          return;
+    function hideOutput() {
+        document.getElementById('output').style.display = 'none';
+    }
+
+    async function fetchModels() {
+        const providerStr = document.getElementById('provider').value;
+        const apiKey = document.getElementById('apiKey').value.trim();
+        const fetchBtn = document.getElementById('fetchBtn');
+        const modelSelect = document.getElementById('modelSelect');
+
+        if (!apiKey) return showOutput("Error: API Key is required.", true);
+
+        // Save key locally for convenience
+        localStorage.setItem(`${providerStr}_key`, apiKey);
+
+        fetchBtn.disabled = true;
+        fetchBtn.innerText = "Loading...";
+        showOutput("Fetching models...", false);
+
+        const apiConf = config[providerStr];
+        let url = apiConf.modelsUrl;
+        let headers = { 'Content-Type': 'application/json' };
+
+        if (apiConf.authType === 'Bearer') {
+            headers['Authorization'] = `Bearer ${apiKey}`;
+        } else if (apiConf.authType === 'Query') {
+            url += `?key=${apiKey}`;
         }
 
-        const reply =
-          data.choices?.[0]?.message?.content ||
-          "No response content found.";
+        try {
+            const response = await fetch(url, { method: 'GET', headers: headers });
+            const data = await response.json();
 
-        responseBox.innerHTML =
-          `<span class="success">API Working ✅</span>\n\n${reply}`;
+            if (!response.ok) {
+                throw new Error(data.error?.message || JSON.stringify(data));
+            }
 
-      } catch (err) {
-        responseBox.innerHTML =
-          `<span class="error">Request Failed</span>\n\n${err.message}`;
-      }
+            // Extract models based on provider structure
+            let models = [];
+            if (providerStr === 'google') {
+                // Google returns { models: [...] } and we only want models that generate content
+                models = data.models
+                    .filter(m => m.supportedGenerationMethods.includes('generateContent'))
+                    .map(m => m.name); 
+            } else {
+                // OpenRouter & Groq return { data: [...] } OpenAI style
+                models = data.data.map(m => m.id);
+            }
+
+            // Populate Dropdown
+            modelSelect.innerHTML = '';
+            models.forEach(model => {
+                const opt = document.createElement('option');
+                opt.value = model;
+                opt.textContent = model.replace('models/', ''); // Clean up google names visually
+                modelSelect.appendChild(opt);
+            });
+
+            showOutput(`Success: Loaded ${models.length} models.`, false);
+        } catch (error) {
+            showOutput(`Failed to fetch models:\n${error.message}`, true);
+        } finally {
+            fetchBtn.disabled = false;
+            fetchBtn.innerText = "Fetch Models";
+        }
     }
-  </script>
+
+    async function testAPI() {
+        const providerStr = document.getElementById('provider').value;
+        const apiKey = document.getElementById('apiKey').value.trim();
+        const model = document.getElementById('modelSelect').value;
+        const prompt = document.getElementById('prompt').value.trim();
+        const testBtn = document.getElementById('testBtn');
+
+        if (!apiKey) return showOutput("Error: API Key is required.", true);
+        if (!model) return showOutput("Error: Please fetch and select a model first.", true);
+        if (!prompt) return showOutput("Error: Prompt cannot be empty.", true);
+
+        testBtn.disabled = true;
+        testBtn.innerText = "Generating...";
+        showOutput("Waiting for response...", false);
+
+        const apiConf = config[providerStr];
+        let url = apiConf.chatUrl;
+        let headers = { 'Content-Type': 'application/json' };
+        let body = {};
+
+        // Construct Request based on Provider
+        if (providerStr === 'google') {
+            // Google specific formatting
+            url = `${apiConf.chatUrlBase}${model}:generateContent?key=${apiKey}`;
+            body = {
+                contents: [{ parts: [{ text: prompt }] }]
+            };
+        } else {
+            // OpenRouter / Groq (OpenAI Compatible) formatting
+            headers['Authorization'] = `Bearer ${apiKey}`;
+            // Recommended headers for OpenRouter
+            if(providerStr === 'openrouter'){
+                headers['HTTP-Referer'] = window.location.href;
+                headers['X-Title'] = 'API Tester UI';
+            }
+            body = {
+                model: model,
+                messages: [{ role: "user", content: prompt }]
+            };
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(body)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error?.message || JSON.stringify(data.error) || 'Unknown API Error');
+            }
+
+            // Extract Response Text
+            let responseText = "";
+            if (providerStr === 'google') {
+                responseText = data.candidates[0].content.parts[0].text;
+            } else {
+                responseText = data.choices[0].message.content;
+            }
+
+            showOutput(responseText, false);
+        } catch (error) {
+            showOutput(`API Error:\n${error.message}`, true);
+        } finally {
+            testBtn.disabled = false;
+            testBtn.innerText = "Test API";
+        }
+    }
+</script>
 
 </body>
 </html>
+
